@@ -4,71 +4,117 @@
 
 ### Pipeline
 <center>
-<img src="assets/teaser.png" width="600"/>
+<img src="assets/fig1.png" width="600"/>
 </center>
 
-## Benchmark Performance
 
+## Installation
+###  Installing on the host machine
+```shell
+git clone https://github.com/jya4134/DACE-MOT.git
+cd DACE-MOT
+pip3 install -r requirements.txt
+python3 setup.py develop
+```
 
-| Dataset          | HOTA | AssA | IDF1 | MOTA | FP      | FN      | IDs   | Frag   |
-| ---------------- | ---- | ---- | ---- | ---- | ------- | ------- | ----- | ------ |
-| MOT17 (private)  | 63.2 | 63.2 | 77.5 | 78.0 | 15,129  | 107,055 | 1,950 | 2,040  |
-| MOT17 (public)   | 52.4 | 57.6 | 65.1 | 58.2 | 4,379   | 230,449 | 784   | 2,006  |
-| MOT20 (private)  | 62.4 | 62.5 | 76.4 | 75.9 | 20,218  | 103,791 | 938   | 1,004  |
-| MOT20 (public)   | 54.3 | 59.5 | 67.0 | 59.9 | 4,434   | 202,502 | 554   | 2,345  |
-| KITTI-cars       | 76.5 | 76.4 | -    | 90.3 | 2,685   | 407     | 250   | 280    |
-| KITTI-pedestrian | 54.7 | 59.1 | -    | 65.1 | 6,422   | 1,443   | 204   | 609    |
-| DanceTrack-test  | 55.1 | 38.0 | 54.2 | 89.4 | 114,107 | 139,083 | 1,992 | 3,838  |
-| CroHD HeadTrack  | 44.1 | -    | 62.9 | 67.9 | 102,050 | 164,090 | 4,243 | 10,122 |
+## Data preparation
 
-* Results are from reusing detections of previous methods and shared hyper-parameters. Tune the implementation adaptive to datasets may get higher performance.
-* The inference speed is ~28FPS by a RTX 2080Ti GPU. If the detections are provided, the inference speed of OC-SORT association is 700FPS by a i9-3.0GHz CPU.
-* A sample from DanceTrack-test set is as below and more visualizatiosn are available on [Google Drive](https://drive.google.com/drive/folders/1-T4jhHwhOAp42DGJ115yMlC7CkB-PNxy?usp=sharing)
+Download [MOT17](https://motchallenge.net/), [MOT20](https://motchallenge.net/), [CrowdHuman](https://www.crowdhuman.org/), [Cityperson](https://github.com/Zhongdao/Towards-Realtime-MOT/blob/master/DATASET_ZOO.md), [ETHZ](https://github.com/Zhongdao/Towards-Realtime-MOT/blob/master/DATASET_ZOO.md) and put them under <DACE-MOT_HOME>/datasets in the following structure:
+```
+datasets
+   |——————mot
+   |        └——————train
+   |        └——————test
+   └——————crowdhuman
+   |         └——————Crowdhuman_train
+   |         └——————Crowdhuman_val
+   |         └——————annotation_train.odgt
+   |         └——————annotation_val.odgt
+   └——————MOT20
+   |        └——————train
+   |        └——————test
+   └——————Cityscapes
+   |        └——————images
+   |        └——————labels_with_ids
+   └——————ETHZ
+            └——————eth01
+            └——————...
+            └——————eth07
+```
 
-    ![](assets/dancetrack0088_slow.gif)
-
-
-
-## Get Started
-* See [INSTALL.md](./docs/INSTALL.md) for instructions of installing required components.
-
-* See [GET_STARTED.md](./docs/GET_STARTED.md) for how to get started with OC-SORT.
-
-* See [MODEL_ZOO.md](./docs/MODEL_ZOO.md) for available YOLOX weights.
-
-* See [DEPLOY.md](./docs/DEPLOY.md) for deployment support over ONNX, TensorRT and ncnn.
-
-
-## Demo
-To run the tracker on a provided demo video from [Youtube](https://www.youtube.com/watch?v=qv6gl4h0dvg):
+Then, you need to turn the datasets to COCO format and mix different training data:
 
 ```shell
-python3 tools/demo_track.py --demo_type video -f exps/example/mot/yolox_dancetrack_test.py -c pretrained/ocsort_dance_model.pth.tar --path videos/dance_demo.mp4 --fp16 --fuse --save_result --out_path demo_out.mp4
+cd <DACE-MOT_HOME>
+python3 tools/convert_mot17_to_coco.py
+python3 tools/convert_mot20_to_coco.py
+python3 tools/convert_crowdhuman_to_coco.py
+python3 tools/convert_cityperson_to_coco.py
+python3 tools/convert_ethz_to_coco.py
 ```
 
+Before mixing different datasets, you need to follow the operations in [mix_xxx.py](https://github.com/ifzhang/ByteTrack/blob/c116dfc746f9ebe07d419caa8acba9b3acfa79a6/tools/mix_data_ablation.py#L6) to create a data folder and link. Finally, you can mix the training data:
+
+```shell
+cd <DACE-MOT_HOME>
+python3 tools/mix_data_ablation.py
+python3 tools/mix_data_test_mot17.py
+python3 tools/mix_data_test_mot20.py
+```
+
+## Training
+
+The COCO pretrained YOLOX model can be downloaded from their [model zoo](https://github.com/Megvii-BaseDetection/YOLOX/tree/0.1.0). After downloading the pretrained models, you can put them under <DACE-MOT_HOME>/pretrained.
+
+* **Train ablation model (MOT17 half train and CrowdHuman)**
+
+```shell
+cd <DACE-MOT_HOME>
+python3 tools/train.py 
+```
+
+* **Train MOT17 test model (MOT17 train, CrowdHuman, Cityperson and ETHZ)**
+
+```shell
+cd <DACE-MOT_HOME>
+python3 tools/train.py 
+```
+
+
+## Tracking
+
+* **Evaluation on MOT17 half val**
+
+Run DACE-MOT:
+
+```shell
+cd <DACE-MOT_HOME>
+python3 tools/track.py 
+```
+
+Run other trackers:
+```shell
+python3 tools/track_sort.py 
+python3 tools/track_deepsort.py 
+python3 tools/track_motdt.py 
+```
+
+* **Test on MOT17**
+
+Run DACE-MOT:
+
+```shell
+cd <DACE-MOT_HOME>
+python3 tools/track.py 
+python3 tools/interpolation.py
+```
+
+## Visualization of tracking results in the MOT17 dataset
 <center>
-<img src="assets/dance_demo.gif" width="600"/>
+<img src="assets/fig8.png" width="600"/>
 </center>
 
-
-## Roadmap
-We are still actively updating OC-SORT. We always welcome contributions to make it better for the community. We have some high-priorty to-dos as below:
-- [x] Add more asssocitaion cost choices: GIoU, CIoU, etc.
-- [x] Support OC-SORT in [mmtracking](https://github.com/open-mmlab/mmtracking).
-- [x] Add more deployment options and improve the inference speed.
-- [x] Make OC-SORT adaptive to customized detector (in the [mmtracking](https://github.com/open-mmlab/mmtracking) version).
-
-
-## Acknowledgement and Citation
-The codebase is built highly upon [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX), [filterpy](https://github.com/rlabbe/filterpy), and [ByteTrack](https://github.com/ifzhang/ByteTrack). We thank their wondeful works. OC-SORT, filterpy and ByteTrack are available under MIT License. And [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX) uses Apache License 2.0 License.
-
-If you find this work useful, please consider to cite our paper:
-```
-@inproceedings{cao2023observation,
-  title={Observation-centric sort: Rethinking sort for robust multi-object tracking},
-  author={Cao, Jinkun and Pang, Jiangmiao and Weng, Xinshuo and Khirodkar, Rawal and Kitani, Kris},
-  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
-  pages={9686--9696},
-  year={2023}
-}
-```
+## Visualization of tracking results in the MOT20 dataset
+<center>
+<img src="assets/fig9.png" width="600"/>
+</center>
