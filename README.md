@@ -1,31 +1,11 @@
-# OC-SORT
+# DACE-MOT
 
-[![arXiv](https://img.shields.io/badge/arXiv-2203.14360-<COLOR>.svg)](https://arxiv.org/abs/2203.14360) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) ![test](https://img.shields.io/static/v1?label=By&message=Pytorch&color=red)
-
-**Observation-Centric SORT (OC-SORT)** is a pure motion-model-based multi-object tracker. It aims to improve tracking robustness in **crowded scenes and when objects are in non-linear motion**. It is designed by recognizing and fixing limitations in Kalman filter and [SORT](https://arxiv.org/abs/1602.00763). It is flexible to integrate with different detectors and matching modules, such as appearance similarity. It remains, **Simple, Online and Real-time**.
+**DACE-MOT** is a new MOT approach focused on dynamic adaptation and collaborative enhancement. It consists of a nonlinear adaptive kalman filter that makes adjust ments in object states for detecting anomalous motions. We also introduce a nonlinear motion adjustment mechanism that optimizes the prediction step that captures object dynamics. Furthermore, we develop a multi-dimensional feature enhancement network that elaborates on appearance-enhancing exploration accumulations across scales to reduce the input image’s quality effect. To tackle identity switches caused by occlusions, we create a trajectory stitching network that compares the spatiotemporal similarity of track fragments and merges them to maintain track continuity.
 
 ### Pipeline
 <center>
 <img src="assets/teaser.png" width="600"/>
 </center>
-
-
-### Observation-centric Re-Update 
-<center>
-<img src="assets/ocr.png" width="600"/>
-</center>
-
-## News
-* [03/19/2026]: I refactored the python implementation to get a 1.5x ~ 2x acceleration of the inference process.
-* [07/09/2023]: A C++ support is provided. See the [doc](deploy/OCSort/cpp/Readme.md) for instructions. Thanks for the contribution!
-* [07/01/2023]: [Deep OC-SORT](https://github.com/GerardMaggiolino/Deep-OC-SORT/) is accepted to ICIP2023. It adds an adaptive appeareance similarity-based association upon OC-SORT.
-* [03/15/2023]: We update the preprint version on [Arxiv](https://arxiv.org/pdf/2203.14360.pdf). We rename OOS to be "Observation-centric Re-Update" (ORU).
-* [02/28/2023]: OC-SORT is accepted to CVPR 2023. We will update the code and paper soon. We made intensive revision of the paper writing.
-* [02/26/2023]: Deep-OC-SORT, a combination of OC-SORT and deep visual appearance, is released on [Github](https://github.com/GerardMaggiolino/Deep-OC-SORT/) and [Arxiv](https://arxiv.org/abs/2302.11813). Significant performance improvement on MOT17, MOT20 and DanceTrack.
-* [08/16/2022]: Support OC-SORT in [mmtracking](https://github.com/open-mmlab/mmtracking). If you want to do tracking with more advanced and customizable experience, you may want to give it a try. The mmtracking version is still in-preview. Performance on more datasets to be verified.
-* [04/27/2022]: Support intergration with BYTE and multiple cost metrics, such as GIoU, CIoU, etc.
-* [04/02/2022]: A preview version is released after a primary cleanup and refactor. 
-* [03/27/2022]: The [arxiv preprint](https://arxiv.org/abs/2203.14360) of OC-SORT is released.
 
 ## Benchmark Performance
 
